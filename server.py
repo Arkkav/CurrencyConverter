@@ -1,12 +1,9 @@
 import socket
 from views import *
+from config import *
 
 URLS = {
-    # '/': 'Hello index',
-    # '/blog'index:'Hello blog',
     '/': index,
-    '/blog': blog,
-
 }
 
 
@@ -29,11 +26,9 @@ def generate_headers(method, url):
 
 def generate_content(code, url):
     if code == 404:
-        return '<h1>404</h1><p>Not found</p>'
+        return return_404()
     if code == 405:
-        return '<h1>405</h1><p>Method not allowed</p>'
-    if code == 404:
-        return '<h1>404</h1><p>not found</p>'
+        return return_405()
     return URLS[url]()
 
 
@@ -55,7 +50,7 @@ def run():
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
                              1)  # sudo fuser -k 5000/tcp            - удаляем порт
 
-    server_socket.bind(('localhost', 5000))  # картеж
+    server_socket.bind((SERVER_IP, SERVER_PORT))  # картеж
     # Теперь нужно сказать: чувак, давай, тебе могут придти пакеты, иди посмотри
     server_socket.listen()
 

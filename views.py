@@ -1,8 +1,13 @@
+import json
+
+
 def index():
-    with open('templates/index.html') as template:
-        return template.read()
+    return json.dumps({'1214': 'regerg'})
 
 
-def blog():
-    with open('templates/blog.html') as template:
-        return template.read()
+def return_405():
+    return json.dumps({'Error': 'Method not allowed'})
+
+
+def return_404():
+    return json.dumps({'Error': 'Not found'})
