@@ -1,11 +1,12 @@
 from main import generate_content, run, generate_response, generate_headers, parse_request
-from utils import get_page, MyHTMLParser
-import views
+from utils import get_page, MyHTMLParser, calculate_usd
+from views import index, return_405, return_404
 import config
 from unittest import mock, TestCase, main
 from urllib.request import urlopen
 from threading import Thread
 import json
+from urllib.error import URLError
 
 
 class SimplisticTest(TestCase):
@@ -49,8 +50,14 @@ class SimplisticTest(TestCase):
 			parse_request(None)
 
 	def test_get_page(self):
-		code_1, response_content = get_page('https://yandex.ru/')
-		code_2, response_content = get_page('https://google.com/')
+		with self.assertRaises(TypeError):
+			code_2, response_content = get_page('https://67j67j67j11112324google.com/')
+		code_1 = code_2 = None
+		try:
+			code_1, response_content = get_page('https://yandex.ru/')
+			code_2, response_content = get_page('https://11112324google.com/')
+		except Exception:
+			pass
 		self.assertTrue(200 in (code_1, code_2))
 
 	def test_MyHTMLParser(self):
@@ -73,6 +80,24 @@ class SimplisticTest(TestCase):
 		parser.feed(content)
 		self.assertEqual(parser.get_rate(), None)
 
+	@mock.patch('views.calculate_usd')
+	@mock.patch('views.get_rate')
+	def test_index(self, mock_get_rate, mock_calculate_usd):
+		self.assertEqual(index('headers', amount=''), ('HTTP/1.1 400 Amount parameter not found\n\n', json.dumps({'Error': 'Amount parameter not found.'})))
+		mock_get_rate.return_value = None
+		self.assertEqual(index('headers', amount='88'), ('HTTP/1.1 500 Bad currency rates service\n\n', json.dumps({'Error': 'Bad currency rates service.'})))
+		mock_get_rate.return_value = 42
+		mock_calculate_usd.return_value = ''
+		self.assertEqual(index('headers', amount='88'), ('HTTP/1.1 400 Amount should be float\n\n', json.dumps({'Error': 'Amount should be float.'})))
+		mock_get_rate.return_value = 42
+		mock_calculate_usd.return_value = '4'
+		self.assertEqual(index('headers', amount='88'), ('headers', json.dumps({'Currency': 'USD', u'Amount': '88', 'Rate': '42', 'Result': '4'})))
+
+	def test_return_405(self):
+		self.assertEqual(return_405(), json.dumps({'Error': 'Method not allowed'}))
+
+	def test_return_404(self):
+		self.assertEqual(return_404(), json.dumps({'Error': 'Page not found'}))
 
 if __name__ == '__main__':
 	main()
