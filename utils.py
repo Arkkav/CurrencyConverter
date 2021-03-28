@@ -32,12 +32,16 @@ def error_json(message):
 
 
 @handle_exception(api_logger)
+def get_page(url):
+	with urlopen(url, timeout=10) as response:
+		return response.code, response.read().decode('utf-8')
+
+
 def get_rate():
-	with urlopen(config.CURRENCY_RATE_URL, timeout=10) as response:
-		response_content = response.read().decode('utf-8')
-		parser = MyHTMLParser()
-		parser.feed(response_content)
-		return parser.get_rate()
+	code, response_content = get_page(config.CURRENCY_RATE_URL)
+	parser = MyHTMLParser()
+	parser.feed(response_content)
+	return parser.get_rate()
 
 
 @handle_exception(api_logger)
@@ -52,7 +56,7 @@ class MyHTMLParser(HTMLParser, ABC):
 		self.rates = []
 
 	def get_rate(self):
-		return self.rates[0]
+		return self.rates[0] if self.rates else None
 
 	def handle_starttag(self, tag, attrs):
 		if tag == 'div':
@@ -68,3 +72,8 @@ class MyHTMLParser(HTMLParser, ABC):
 			rate = re.findall(pattern, data)
 			self.rates.append(float(rate[0].replace(',', '.')))
 		self.caught_flag = False
+
+
+if __name__ == '__main__':
+		print(get_page(config.CURRENCY_RATE_URL))
+		# get_HTML('')

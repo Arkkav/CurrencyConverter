@@ -1,4 +1,5 @@
-from main import generate_content, run, generate_response
+from main import generate_content, run, generate_response, generate_headers, parse_request
+from utils import get_page, MyHTMLParser
 import views
 import config
 from unittest import mock, TestCase, main
@@ -31,8 +32,46 @@ class SimplisticTest(TestCase):
 		with urlopen(url, timeout=10) as response:
 			response_content = response.read()
 			response_content = response_content.decode('utf-8')
+
+		# for exiting the main process
 		mock_server_thread.do_run = False
 		self.assertEqual(response_content, json_body)
+
+	def test_generate_headers(self):
+		self.assertEqual(generate_headers('POST', '/'), ('HTTP/1.1 405 Method not allowed\n\n', 405))
+		self.assertEqual(generate_headers('GET', '/'), ('HTTP/1.1 200 OK\n\n', 200))
+		self.assertEqual(generate_headers('GET', '/ergerg'), ('HTTP/1.1 404 Not found\n\n', 404))
+
+	def test_parse_request(self):
+		self.assertEqual(parse_request('GET /?amount=345 HTTP/1.1\r\nConnection: keep-alive'), ('GET', '/', {'amount': '345'}))
+		self.assertEqual(parse_request('POST /erger?rate=1 HTTP/1.1\r\nConnection: keep-alive'), ('POST', '/erger', {'rate': '1'}))
+		with self.assertRaises(AttributeError):
+			parse_request(None)
+
+	def test_get_page(self):
+		code_1, response_content = get_page('https://yandex.ru/')
+		code_2, response_content = get_page('https://google.com/')
+		self.assertTrue(200 in (code_1, code_2))
+
+	def test_MyHTMLParser(self):
+		content = """
+			<div class="main-indicator_rate">
+			<div class="col-md-2 col-xs-9 _dollar">USD</div>
+			<div class="col-md-2 col-xs-9 _right mono-num">76,1741 ₽
+							</div>
+			<div class="col-md-2 col-xs-9 _right mono-num">75,7576 ₽
+							</div>
+			<div class="main-indicator_tooltip" id="V_R01235">
+			  <div class="main-indicator_tooltip-footer">Официальный курс Банка России</div>
+			</div>
+		"""
+		parser = MyHTMLParser()
+		parser.feed(content)
+		self.assertEqual(parser.get_rate(), 76.1741)
+		parser = MyHTMLParser()
+		content = ''
+		parser.feed(content)
+		self.assertEqual(parser.get_rate(), None)
 
 
 if __name__ == '__main__':

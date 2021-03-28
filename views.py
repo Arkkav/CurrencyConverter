@@ -12,6 +12,9 @@ def index(headers, **kwargs):
         headers = 'HTTP/1.1 400 Amount parameter not found\n\n'
         return headers, error_json('Amount parameter not found.')
     rate = get_rate()
+    if not rate:
+        headers = 'HTTP/1.1 500 Bad currency rates service\n\n'
+        return headers, error_json('Bad currency rates service.')
     usd_amount = calculate_usd(amount, rate)
     if not usd_amount:
         headers = 'HTTP/1.1 400 Amount should be float\n\n'
