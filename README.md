@@ -31,7 +31,8 @@ git clone https://github.com/Arkkav/CurrencyConverter.git CurrencyConverter
 cd CurrencyConverter
 python3.9 -m venv venv
 . venv/bin/activate
-sudo docker-compose build
+
+#sudo docker build -t my-docker-image .
 ```
 CTRL+C для выхода 
 
@@ -39,9 +40,11 @@ CTRL+C для выхода
 ```
  python main.py
 ``` 
-
+Запуск Docker контейнера:
 ```bash
-sudo docker-compose up -d 
+#sudo docker run --rm -it --name my-docker-instance -p 8000:5000 my-docker-image
+#sudo fuser -k 80/tcp  # если нужно освободить порт
+
 ``` 
 
 ### Запуск автотестов
@@ -51,21 +54,21 @@ python -m unittest tests.test.CurrencyConverterTest.test_get_page  # для за
 ``` 
 ### Пример использования
 
--------------
+---
 GET /?amount=14 HTTP/1.1
-Host: localhost:5000
+Host: 0.0.0.0:8000
 
 HTTP/1.1 200 OK
 {"Currency": "USD", "Amount": "14", "Rate": "76.1741", "Result": "1066.4374"}
--------------
+---
 GET / HTTP/1.1
-Host: localhost:5000
+Host: 0.0.0.0:8000
 
 HTTP/1.1 400 Amount parameter not found
 {"Error": "Amount parameter not found."}
--------------
+---
 GET /?amount=wfewfe HTTP/1.1
-Host: localhost:5000
+Host: 0.0.0.0:8000
 
 HTTP/1.1 400 Amount should be float
 {"Error": "Amount should be float."}

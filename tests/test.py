@@ -70,10 +70,10 @@ class CurrencyConverterTest(TestCase):
 			  <div class="main-indicator_tooltip-footer">Официальный курс Банка России</div>
 			</div>
 		"""
-		parser = MyHTMLParser()
+		parser = MyHTMLParser(config.CSS_SELECTOR[0], config.CSS_SELECTOR[1], config.CSS_SELECTOR[2])
 		parser.feed(content)
 		self.assertEqual(parser.get_rate(), 76.1741)
-		parser = MyHTMLParser()
+		parser = MyHTMLParser(config.CSS_SELECTOR[0], config.CSS_SELECTOR[1], config.CSS_SELECTOR[2])
 		content = ''
 		parser.feed(content)
 		self.assertEqual(parser.get_rate(), None)
