@@ -7,17 +7,20 @@ api_logger = logging.getLogger(config.LOGGER_NAME)
 
 
 def index(header, **kwargs):
+    
+    
     amount = kwargs.get('amount', '')
     if not amount:
-        header = 'HTTP/1.1 400 Amount parameter not found\n\n'
+        header = 'HTTP/1.1 400 Amount parameter not found\n\n'  # If no amount parameter then return 400
         return header, error_json('Amount parameter not found.')
     rate = get_rate()
     if not rate:
+        # If no such CSS selector at all for source and selector in config)
         header = 'HTTP/1.1 500 Bad currency rates service\n\n'
         return header, error_json('Bad currency rates service.')
     usd_amount = calculate_usd(amount, rate)
     if not usd_amount:
-        header = 'HTTP/1.1 400 Amount should be float\n\n'
+        header = 'HTTP/1.1 400 Amount should be float\n\n'  # If amount parameter has bed format then return 500
         return header, error_json('Amount should be float.')
     api_logger.debug('Amount: ' + amount + ' Rate: ' + str(rate) + ' Result: ' + usd_amount)
     return header, json.dumps({'Currency': 'USD', u'Amount': amount, 'Rate': str(rate), 'Result': usd_amount})

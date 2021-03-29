@@ -6,10 +6,10 @@ from unittest import mock, TestCase, main
 from urllib.request import urlopen
 from threading import Thread
 import json
-from urllib.error import URLError
+import time
 
 
-class SimplisticTest(TestCase):
+class CurrencyConverterTest(TestCase):
 	@mock.patch('main.return_405', return_value=3)
 	@mock.patch('main.return_404', return_value=2)
 	@mock.patch.dict('main.URLS', {'/': lambda y, x: 4})
@@ -28,13 +28,13 @@ class SimplisticTest(TestCase):
 		mock_server_thread = Thread(target=run)
 		mock_server_thread.setDaemon(True)
 		mock_server_thread.start()
-
+		time.sleep(1)
 		url = 'http://{address}:{port}'.format(address=config.SERVER_ADDRESS, port=config.SERVER_PORT)
 		with urlopen(url, timeout=10) as response:
 			response_content = response.read()
 			response_content = response_content.decode('utf-8')
 
-		# for exiting the main process
+		# For exiting the main process
 		mock_server_thread.do_run = False
 		self.assertEqual(response_content, json_body)
 
@@ -50,12 +50,10 @@ class SimplisticTest(TestCase):
 			parse_request(None)
 
 	def test_get_page(self):
-		with self.assertRaises(TypeError):
-			code_2, response_content = get_page('https://67j67j67j11112324google.com/')
 		code_1 = code_2 = None
 		try:
 			code_1, response_content = get_page('https://yandex.ru/')
-			code_2, response_content = get_page('https://11112324google.com/')
+			code_2, response_content = get_page('https://google.com/')
 		except Exception:
 			pass
 		self.assertTrue(200 in (code_1, code_2))
@@ -98,6 +96,18 @@ class SimplisticTest(TestCase):
 
 	def test_return_404(self):
 		self.assertEqual(return_404(), json.dumps({'Error': 'Page not found'}))
+	
+	def test_calculate_usd(self):
+		self.assertEqual(calculate_usd(2, 4), '8.0')
+		self.assertEqual(calculate_usd(2.5, 4.0), '10.0')
+		self.assertEqual(calculate_usd(None, 4.4), None)
+	
+	@mock.patch('main.generate_content', return_value=('6', '7'))
+	@mock.patch('main.generate_headers', return_value=('4', '5'))
+	@mock.patch('main.parse_request', return_value=('1', '2', '3'))
+	def test_generate_response(self, parse_request, generate_headers, generate_content):
+		self.assertEqual(generate_response('wefwef'), b'67')
+	
 
 if __name__ == '__main__':
 	main()

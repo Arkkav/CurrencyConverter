@@ -2,12 +2,12 @@ import socket
 from views import return_405, return_404, index
 import config
 import sys
-from utils import error_json
 import logging
 
 
 def logging_configure(bebug_level=logging.ERROR):
     logger = logging.getLogger(config.LOGGER_NAME)
+    # Logger format with level, time and message
     formatter = logging.Formatter('%(levelname)s [%(asctime)s] %(message)s')
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
@@ -38,8 +38,7 @@ def parse_request(request):
 
 def generate_headers(method, url):
     if not method == 'GET':
-        return 'HTTP/1.1 405 Method not allowed\n\n', 405  # отделяем заголовок от тела
-
+        return 'HTTP/1.1 405 Method not allowed\n\n', 405
     if url not in URLS:
         return 'HTTP/1.1 404 Not found\n\n', 404
 
@@ -47,16 +46,16 @@ def generate_headers(method, url):
 
 
 def generate_content(code, url, kwargs, headers):
-    if code == 404:
+    if code == 404:                                     # If url not in list then 404
         return headers, return_404()
-    if code == 405:
+    if code == 405:                                     # If not GET method
         return headers, return_405()
     return URLS[url](headers, **kwargs)
 
 
 def generate_response(request):
     method, url, kwargs = parse_request(request)
-    headers, code = generate_headers(method, url)  # если url не тот, то 404, если method, то др. заголовок
+    headers, code = generate_headers(method, url)
     headers, body = generate_content(code, url, kwargs, headers)
     response = (headers + body).encode()
     api_logger.debug('Response:\n' + headers + body)
@@ -64,31 +63,27 @@ def generate_response(request):
 
 
 def run():
-    # создаем субъекта
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # указали, какой протокол будет исп-ть.
-    # AF_INET - протокол 4-й версии
-    # SOCK_STREAM - TCP протокол
-    # Связываем субъекта с конкретным IP:port
-    # server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)  # опции (на каком уровне SOlevel, переисп. адрес устан. в 1 (не SO_REUSEADDR))
+    # Create socket
+    server_socket = socket.socket(socket.AF_INET,
+                                  socket.SOCK_STREAM)  # Which protocol should be used (SOCK_STREAM = TCP))
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,
-                             1)  # sudo fuser -k 5000/tcp            - удаляем порт
-
-    server_socket.bind((config.SERVER_ADDRESS, config.SERVER_PORT))  # картеж
-    # Теперь нужно сказать: чувак, давай, тебе могут придти пакеты, иди посмотри
+                             1)  # sudo fuser -k 5000/tcp  - to delete port
+    server_socket.bind((config.SERVER_ADDRESS, config.SERVER_PORT))
+    # Listening the created socket
     server_socket.listen()
     do_run = True
     api_logger.debug('Server listening...')
     while do_run:
         clint_socket = None
         try:
-            clint_socket, addr = server_socket.accept()  # возвращает картеж, кот. распаковываем в 2-е переменные
-            # возвращает сокет, но со сороны клиенты
-            request = clint_socket.recv(1024)  # 1024 - кол-во байт в пакете
+            clint_socket, addr = server_socket.accept()  # Return tuple which unpacks into two variables
+            # Return socket from client
+            request = clint_socket.recv(1024)  # 1024 - bites in packet
             if request:
                 request = request.decode('utf-8')
                 api_logger.debug('Request:\n' + str(request.rstrip()))
-                response = generate_response(request)  # декодируем все таки, т.к. приходит в браузер
-                clint_socket.sendall(response)  # преобразовываем из строки с bytes
+                response = generate_response(request)
+                clint_socket.sendall(response)
         except IOError as e:
             api_logger.exception(e)
             continue
