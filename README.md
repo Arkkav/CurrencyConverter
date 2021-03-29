@@ -60,12 +60,14 @@ Host: 0.0.0.0:8000
 
 HTTP/1.1 200 OK
 {"Currency": "USD", "Amount": "14", "Rate": "76.1741", "Result": "1066.4374"}
+
 ---
 GET / HTTP/1.1
 Host: 0.0.0.0:8000
 
 HTTP/1.1 400 Amount parameter not found
 {"Error": "Amount parameter not found."}
+
 ---
 GET /?amount=wfewfe HTTP/1.1
 Host: 0.0.0.0:8000
