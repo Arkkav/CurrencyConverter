@@ -32,7 +32,7 @@ cd CurrencyConverter
 python3.9 -m venv venv
 . venv/bin/activate
 ```
-CTRL+C для выхода.
+CTRL+C для выхода. \
 Создание docker контейнера:
 ```
 sudo docker build -t my-docker-image .
