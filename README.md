@@ -31,16 +31,19 @@ git clone https://github.com/Arkkav/CurrencyConverter.git CurrencyConverter
 cd CurrencyConverter
 python3.9 -m venv venv
 . venv/bin/activate
-
-#sudo docker build -t my-docker-image .
 ```
-CTRL+C для выхода 
+CTRL+C для выхода.
+Создание docker контейнера:
+```
+sudo docker build -t my-docker-image .
+```
+
 
 ### Запуск сервиса
 ```
  python main.py
 ``` 
-Запуск Docker контейнера:
+Запуск docker контейнера:
 ```bash
 #sudo docker run --rm -it --name my-docker-instance -p 8000:5000 my-docker-image
 #sudo fuser -k 80/tcp  # если нужно освободить порт
