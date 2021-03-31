@@ -79,7 +79,7 @@ class MyHTMLParser(HTMLParser, ABC):
 		#  Get the first one from all matched
 		return self.rates[0] if self.rates else None
 
-	def handle_starttag(self, tag: str, attrs: list[list[str]]):
+	def handle_starttag(self, tag: str, attrs: list[list[str]]) -> None:
 		if tag == self.tag:
 			for attr in attrs:
 				if attr[0] == self.param and attr[1] == self.value:
